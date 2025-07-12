@@ -134,25 +134,8 @@ jobs:
 
       - name: Clone Vendor Modules
         run: |
-          echo "Cloning the vendor modules repo into a sibling 'vendor' directory..."
-          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
-      
-      - name: Patch Kernel Kconfig Files
-        run: |
-          echo "Patching Kconfig files to fix incorrect source paths..."
-          sed -i 's|source "kernel/oplus_cpu/sched/Kconfig"|source "../vendor/oplus/oplus_cpu/sched/Kconfig"|g' kernel/init/Kconfig || true
-          sed -i 's|source "drivers/power/oplus/Kconfig"|source "../vendor/oplus/kernel/charger/Kconfig"|g' kernel/drivers/power/Kconfig || true
-          sed -i 's|source "drivers/misc/sim_detect/Kconfig"|source "../vendor/oplus/kernel/misc/sim_detect/Kconfig"|g' kernel/drivers/misc/Kconfig || true
-          sed -i 's|source "drivers/input/touchscreen/oplus_touchscreen_v2/Kconfig"|source "../vendor/oplus/kernel/touchpanel/oplus_touchscreen_v2/Kconfig"|g' kernel/drivers/input/touchscreen/Kconfig || true
-          sed -i 's|source "drivers/soc/oplus/hans/Kconfig"|source "../vendor/oplus/kernel/hans/Kconfig"|g' kernel/drivers/soc/oplus/Kconfig || true
-          sed -i 's|source "drivers/android/oplus_binder/Kconfig"|source "../vendor/oplus/kernel/ipc/Kconfig"|g' kernel/drivers/android/Kconfig || true
-          sed -i 's|source "net/oplus_modules/Kconfig"|source "../vendor/oplus/kernel/network/Kconfig"|g' kernel/net/Kconfig || true
-          sed -i 's|source "mm/oplus_mm/Kconfig"|source "../vendor/oplus/kernel/mm/Kconfig"|g' kernel/mm/Kconfig || true
-          sed -i 's|source "kernel/locking/oplus_locking/Kconfig"|source "../vendor/oplus/kernel/synchronize/Kconfig"|g' kernel/kernel/locking/Kconfig || true
-          sed -i 's|source "drivers/dma-buf/heaps/mm_boost_pool/Kconfig"|source "../vendor/oplus/kernel/oplus_performance_5.10/misc/mm_boost_pool/Kconfig"|g' kernel/drivers/dma-buf/heaps/Kconfig || true
-          sed -i 's|source "drivers/input/uff_fp_drivers/Kconfig"|source "../vendor/oplus/secure/biometrics/fingerprints/bsp/uff/driver/Kconfig"|g' kernel/drivers/input/Kconfig || true
-          sed -i 's|source "drivers/input/fp_drivers/Kconfig"|source "../vendor/oplus/secure/biometrics/fingerprints/bsp/drivers_kernel/component3.0/mtk/Kconfig"|g' kernel/drivers/input/Kconfig || true
-
+          echo "Cloning the vendor modules repo directly into kernel/vendor..."
+          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} kernel/vendor
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
@@ -186,6 +169,7 @@ jobs:
           fi
 
       - name: Configure and Build Kernel
+        working-directory: kernel
         run: |
           export ARCH=arm64
           export SUBARCH=arm64
@@ -215,14 +199,13 @@ jobs:
           
           echo "--- Configuring Kernel for GKI Build ---"
           # This defconfig is expected to be GKI-aware
-          # The -C flag tells make to change to the 'kernel' directory before doing anything
-          make -C kernel O=out ${MAKE_ARGS} vendor/oplus_defconfig
+          make O=out ${MAKE_ARGS} vendor/oplus_defconfig
 
           echo "--- Building GKI Kernel Image and Vendor Modules ---"
           # The make command will build the GKI kernel (Image.gz-dtb)
-          make -C kernel O=out -j$(nproc --all) ${MAKE_ARGS}
+          make O=out -j$(nproc --all) ${MAKE_ARGS}
           # The 'modules' target will build all necessary vendor kernel modules (.ko files)
-          make -C kernel O=out -j$(nproc --all) ${MAKE_ARGS} modules
+          make O=out -j$(nproc --all) ${MAKE_ARGS} modules
 
       - name: Create AnyKernel3 Zip
         run: |
