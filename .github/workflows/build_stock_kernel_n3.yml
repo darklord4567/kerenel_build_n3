@@ -159,7 +159,6 @@ jobs:
             export CLANG_TRIPLE="aarch64-linux-gnu-"
             export CROSS_COMPILE="aarch64-linux-gnu-"
             export CC="ccache clang"
-            export LD=ld.lld
             export AR=llvm-ar
             export NM=llvm-nm
             export OBJCOPY=llvm-objcopy
