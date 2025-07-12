@@ -40,6 +40,9 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 8G
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,23 +90,22 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ github.event.inputs.FILE }}-${{ env.BUILD_METHOD }}-${{ github.event.inputs.FAST_BUILD == 'true' && 'alpha' || 'beta' }}-15
+          key: ccache-${{ runner.os }}-${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.inputs.FAST_BUILD }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ github.workflow }}-${{ github.ref_name }}-
 
       - name: Initialize Ccache
         run: |
           INIT_FLAG="${{ env.CCACHE_DIR }}/.ccache_initialized"
           if command -v ccache >/dev/null 2>&1; then
             if [ ! -f "$INIT_FLAG" ]; then
-              echo "Initializing ccache (${{ env.CCACHE_DIR }})..."
-              mkdir -p "${{ env.CCACHE_DIR }}"
+              echo "Initializing ccache..."
               ccache -M ${{ env.CCACHE_MAXSIZE }}
               touch "$INIT_FLAG"
               echo "ccache initialization complete"
             else
               echo "ccache already initialized, skipping"
             fi
-          else
-            echo "ccache not installed, skipping"
           fi
           ccache -s
 
@@ -112,6 +114,12 @@ jobs:
         run: |
           echo "Setting up Proton Clang toolchain for GKI Fast Build"
           git clone https://github.com/kdrag0n/proton-clang --depth=1 clang-toolchain
+      
+      - name: Remove LLD binary from Proton Clang to prevent host tool build errors
+        if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
+        run: |
+          echo "Removing Proton Clang's internal ld to prevent host linker issues"
+          rm -f clang-toolchain/bin/ld
           
       - name: Install Toolchain (Standard Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'false' }}
@@ -124,10 +132,12 @@ jobs:
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_SOURCE_BRANCH }} ${{ github.event.inputs.KERNEL_SOURCE_URL }} kernel
 
-      - name: Clone Vendor Modules
+      - name: Clone Vendor Modules into kernel tree
         run: |
-          echo "Cloning the vendor modules repo into a sibling 'vendor' directory..."
-          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
+          echo "Cloning vendor modules into kernel/kernel_modules …"
+          git clone --depth=1 --single-branch \
+            -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
+            ${{ github.event.inputs.KERNEL_MODULES_URL }}  kernel/kernel_modules
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
@@ -165,11 +175,12 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           export KBUILD_BUILD_USER="${{ github.event.inputs.BUILD_USER }}"
-          
-          MAKE_ARGS=""
-          
+
+          echo "--- Generating defconfig with system GCC (host tools) ---"
+          make -C kernel O=out vendor/oplus_defconfig
+
           if [ "${{ github.event.inputs.FAST_BUILD }}" = "true" ]; then
-            echo "Using specific Clang for GKI build"
+            echo "Using Proton Clang for target build"
             export PATH="${{ github.workspace }}/clang-toolchain/bin:${PATH}"
             export CLANG_TRIPLE="aarch64-linux-gnu-"
             export CROSS_COMPILE="aarch64-linux-gnu-"
@@ -180,24 +191,16 @@ jobs:
             export OBJCOPY=llvm-objcopy
             export OBJDUMP=llvm-objdump
             export STRIP=llvm-strip
-            # Fix for linker incompatibility on newer hosts by using the host's native compiler for host tools
-            MAKE_ARGS="HOSTCC=gcc HOSTCXX=g++ HOSTLD=ld"
           else
-            echo "Using GCC for build"
+            echo "Using GCC for target build"
             export CROSS_COMPILE_ARM32=${{ github.workspace }}/gcc-arm/bin/arm-eabi-
             export CROSS_COMPILE=${{ github.workspace }}/gcc-arm64/bin/aarch64-elf-
           fi
-          
-          echo "--- Configuring Kernel for GKI Build ---"
-          # This defconfig is expected to be GKI-aware
-          # The -C flag tells make to change to the 'kernel' directory before doing anything
-          make -C kernel O=out ${MAKE_ARGS} vendor/oplus_defconfig
 
-          echo "--- Building GKI Kernel Image and Vendor Modules ---"
-          # The make command will build the GKI kernel (Image.gz-dtb)
-          make -C kernel O=out -j$(nproc --all) ${MAKE_ARGS}
-          # The 'modules' target will build all necessary vendor kernel modules (.ko files)
-          make -C kernel O=out -j$(nproc --all) ${MAKE_ARGS} modules
+          echo "--- Building kernel image and modules ---"
+          make -C kernel O=out -j$(nproc)
+          make -C kernel O=out -j$(nproc) modules
+
 
       - name: Create AnyKernel3 Zip
         run: |
