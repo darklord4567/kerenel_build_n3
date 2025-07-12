@@ -134,9 +134,9 @@ jobs:
 
       - name: Clone Vendor Modules
         run: |
-          echo "Cloning vendor modules repo directly into kernel/vendor..."
+          echo "Cloning vendor modules repo directly into kernel..."
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
-            ${{ github.event.inputs.KERNEL_MODULES_URL }} kernel/vendor
+            ${{ github.event.inputs.KERNEL_MODULES_URL }} kernel
             
       - name: Debug check vendor path
         run: |
