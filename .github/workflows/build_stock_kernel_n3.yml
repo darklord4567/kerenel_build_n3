@@ -67,12 +67,23 @@ jobs:
           sudo mkdir -p ${{ env.APT_CACHE_DIR }}/lists/partial
           sudo chown -R _apt:root ${{ env.APT_CACHE_DIR }}
           sudo chmod -R 700 ${{ env.APT_CACHE_DIR }}
-          
+
           echo 'Dir::Cache "${{ env.APT_CACHE_DIR }}";' | sudo tee /etc/apt/apt.conf.d/99-cache
-          
+
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential git libssl-dev libncurses5-dev bc bison flex libelf-dev ccache gcc-aarch64-linux-gnu
+            build-essential \
+            git \
+            libssl-dev \
+            libncurses5-dev \
+            bc \
+            bison \
+            flex \
+            libelf-dev \
+            ccache \
+            gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabi
+
 
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
