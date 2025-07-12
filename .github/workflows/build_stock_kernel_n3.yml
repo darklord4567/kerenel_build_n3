@@ -173,7 +173,6 @@ jobs:
             export OBJDUMP=llvm-objdump
             export STRIP=llvm-strip
             # Fix for linker incompatibility on newer hosts by using the host's native compiler for host tools
-            MAKE_ARGS="HOSTCC=gcc HOSTCXX=g++ HOSTLD=ld"
             MAKE_ARGS="HOSTCC=gcc HOSTCXX=g++ HOSTLD=/usr/bin/ld"
           else
             echo "Using GCC for build"
