@@ -77,10 +77,8 @@ jobs:
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
         run: |
-          echo "Setting up AOSP Clang toolchain for GKI Fast Build"
-          mkdir clang-toolchain
-          curl -o clang.tar.gz -L "https://gitlab.com/PixelOS-Devices/playground_clang/-/raw/master/clang-r450784d.tar.gz"
-          tar -xzf clang.tar.gz -C clang-toolchain
+          echo "Setting up Proton Clang toolchain for GKI Fast Build"
+          git clone https://github.com/kdrag0n/proton-clang --depth=1 clang-toolchain
 
       - name: Install Toolchain (Standard Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'false' }}
