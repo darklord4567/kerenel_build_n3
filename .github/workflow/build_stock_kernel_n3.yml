@@ -1,5 +1,4 @@
 name: Build Kernel for OnePlus Nord 3 (MT6983)
-
 on:
   workflow_dispatch:
     inputs:
@@ -19,14 +18,14 @@ on:
         description: 'Branch of the kernel modules repository'
         required: true
         default: 'oneplus/mt6983_v_15.0.0_nord_3'
-      CUSTOM_SUFFIX:
-        description: 'Custom suffix for the kernel name in kernel version (leave empty for random)'
-        required: false
-        default: 'MyKernel'
       BUILD_USER:
-        description: 'Custom user name for the kernel version string in zip'
+        description: 'Custom user name embedded in the kernel version string (uname -a)'
         required: false
         default: 'MyBuild'
+      CUSTOM_SUFFIX:
+        description: 'Custom suffix for the kernel version string and zip file name (leave empty for random)'
+        required: false
+        default: 'MyKernel'
       FAST_BUILD:
         type: boolean
         description: 'Enable fast build using a specific Clang toolchain and ccache?'
@@ -40,6 +39,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Maximize Build Space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          swap-size-mb: 4096
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
 
       - name: Install Dependencies
         run: |
