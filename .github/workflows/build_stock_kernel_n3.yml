@@ -134,10 +134,16 @@ jobs:
 
       - name: Clone Vendor Modules
         run: |
-          echo "Cloning the vendor modules repo directly into kernel/vendor..."
-          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
-           echo "Merging vendor kernel directories into kernel tree..."
-            rsync -av vendor/kernel/* kernel/kernel/
+          echo "Cloning vendor modules repo directly into kernel/vendor..."
+          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
+            ${{ github.event.inputs.KERNEL_MODULES_URL }} kernel/vendor
+            
+      - name: Debug check vendor path
+        run: |
+          echo "Check for Kconfig:"
+          ls -l kernel/vendor/oplus/kernel/cpu/sched/Kconfig
+
+
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
