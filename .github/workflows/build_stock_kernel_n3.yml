@@ -67,23 +67,12 @@ jobs:
           sudo mkdir -p ${{ env.APT_CACHE_DIR }}/lists/partial
           sudo chown -R _apt:root ${{ env.APT_CACHE_DIR }}
           sudo chmod -R 700 ${{ env.APT_CACHE_DIR }}
-
+          
           echo 'Dir::Cache "${{ env.APT_CACHE_DIR }}";' | sudo tee /etc/apt/apt.conf.d/99-cache
-
+          
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            git \
-            libssl-dev \
-            libncurses5-dev \
-            bc \
-            bison \
-            flex \
-            libelf-dev \
-            ccache \
-            gcc-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabi
-
+            build-essential git libssl-dev libncurses5-dev bc bison flex libelf-dev ccache gcc-aarch64-linux-gnu
 
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
@@ -111,19 +100,10 @@ jobs:
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_SOURCE_BRANCH }} ${{ github.event.inputs.KERNEL_SOURCE_URL }} kernel
 
-      - name: Clone Vendor Modules (Sparse Checkout)
+      - name: Clone Vendor Modules
         run: |
-          echo "Cloning only the 'vendor' directory from the kernel modules repo..."
-          mkdir kernel_modules_temp
-          cd kernel_modules_temp
-          git init
-          git remote add origin ${{ github.event.inputs.KERNEL_MODULES_URL }}
-          git config core.sparseCheckout true
-          echo "vendor/*" > .git/info/sparse-checkout
-          git pull --depth=1 origin ${{ github.event.inputs.KERNEL_MODULES_BRANCH }}
-          mv vendor ../kernel/
-          cd ..
-          rm -rf kernel_modules_temp
+          echo "Cloning the vendor modules repo directly into kernel/vendor..."
+          git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} kernel/vendor
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
@@ -158,7 +138,6 @@ jobs:
 
       - name: Configure and Build Kernel
         run: |
-          cd kernel
           export ARCH=arm64
           export SUBARCH=arm64
           export KBUILD_BUILD_USER="${{ github.event.inputs.BUILD_USER }}"
@@ -187,13 +166,13 @@ jobs:
           
           echo "--- Configuring Kernel for GKI Build ---"
           # This defconfig is expected to be GKI-aware
-          make O=out ${MAKE_ARGS} vendor/oplus_defconfig
+          make -C kernel O=out ${MAKE_ARGS} vendor/oplus_defconfig
 
           echo "--- Building GKI Kernel Image and Vendor Modules ---"
           # The make command will build the GKI kernel (Image.gz-dtb)
-          make -j$(nproc --all) O=out ${MAKE_ARGS}
+          make -C kernel -j$(nproc --all) O=out ${MAKE_ARGS}
           # The 'modules' target will build all necessary vendor kernel modules (.ko files)
-          make -j$(nproc --all) O=out ${MAKE_ARGS} modules
+          make -C kernel -j$(nproc --all) O=out ${MAKE_ARGS} modules
 
       - name: Create AnyKernel3 Zip
         run: |
