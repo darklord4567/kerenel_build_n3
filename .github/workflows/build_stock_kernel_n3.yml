@@ -138,14 +138,13 @@ jobs:
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
             ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor_modules
 
-      - name: Copy kernel modules & vendor tree into kernel/
+      - name: move vendor from vendor_modules
         run: |
-          # Copy all folders (kernel/, kernel-4.14/, kernel-4.19/, kernel-5.15/, vendor/) into kernel/
-          cp -r vendor_modules/* kernel/
-          
+          mv vendor_modules/vendor .
+
       - name: Debug check final vendor path
         run: |
-          ls -l kernel/vendor/oplus/kernel/cpu/sched/Kconfig
+          ls -l vendor/oplus/kernel/cpu/sched/Kconfig
 
 
 
