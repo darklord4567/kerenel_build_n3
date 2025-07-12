@@ -112,8 +112,9 @@ jobs:
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
         run: |
-          echo "Setting up Proton Clang toolchain for GKI Fast Build"
-          git clone https://github.com/kdrag0n/proton-clang --depth=1 clang-toolchain
+          echo "Setting up AOSP Clang r416183b toolchain..."
+          mkdir clang-toolchain
+          curl -sL "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-11.0.0_r41/clang-r416183b.tar.gz" | tar -xzf - -C clang-toolchain
       
       - name: Remove LLD binary from Proton Clang to prevent host tool build errors
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
