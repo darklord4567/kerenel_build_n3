@@ -22,11 +22,11 @@ on:
       BUILD_USER:
         description: 'Custom user name embedded in the kernel version string (uname -a)'
         required: false
-        default: 'MyBuild'
+        default: 'LuffyOP_stock_'
       CUSTOM_SUFFIX:
         description: 'Custom suffix for the kernel version string and zip file name (leave empty for random)'
         required: false
-        default: 'MyKernel'
+        default: 'LuffyOP_stock_'
       FAST_BUILD:
         type: boolean
         description: 'Enable fast build using a specific Clang toolchain and ccache?'
