@@ -102,7 +102,7 @@ jobs:
 
       - name: Clone Vendor Modules
         run: |
-          echo "Cloning the vendor modules repo directly into kernel/vendor..."
+          echo "Cloning the vendor modules repo into a sibling 'vendor' directory..."
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
 
       - name: Set Custom Kernel Suffix
@@ -166,13 +166,14 @@ jobs:
           
           echo "--- Configuring Kernel for GKI Build ---"
           # This defconfig is expected to be GKI-aware
-          make -C kernel O=out ${MAKE_ARGS} vendor/oplus_defconfig
+          # The -C flag tells make to change to the 'kernel' directory before doing anything
+          make -C kernel O=kernel/out ${MAKE_ARGS} vendor/oplus_defconfig
 
           echo "--- Building GKI Kernel Image and Vendor Modules ---"
           # The make command will build the GKI kernel (Image.gz-dtb)
-          make -C kernel -j$(nproc --all) O=out ${MAKE_ARGS}
+          make -C kernel O=kernel/out -j$(nproc --all) ${MAKE_ARGS}
           # The 'modules' target will build all necessary vendor kernel modules (.ko files)
-          make -C kernel -j$(nproc --all) O=out ${MAKE_ARGS} modules
+          make -C kernel O=kernel/out -j$(nproc --all) ${MAKE_ARGS} modules
 
       - name: Create AnyKernel3 Zip
         run: |
