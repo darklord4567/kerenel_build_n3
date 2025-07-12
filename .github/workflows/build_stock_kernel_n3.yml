@@ -145,8 +145,12 @@ jobs:
       - name: Debug check final vendor path
         run: |
           ls -l vendor/oplus/kernel/cpu/sched/Kconfig
-
-
+      
+      - name: copy gki_defconfig to oplus_defconfig
+        run: |
+          cp kernel/arch/arm64/configs/vendor/gki_defconfig \
+           kernel/arch/arm64/configs/vendor/oplus_defconfig
+          ls -l kernel/arch/arm64/configs/vendor/
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
