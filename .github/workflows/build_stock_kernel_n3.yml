@@ -172,6 +172,7 @@ jobs:
         working-directory: kernel
         run: |
           {
+            set -x
             export ARCH=arm64
             export SUBARCH=arm64
             export KBUILD_BUILD_USER="${{ github.event.inputs.BUILD_USER }}"
@@ -207,7 +208,7 @@ jobs:
             make O=out -j$(nproc --all) ${MAKE_ARGS}
             # The 'modules' target will build all necessary vendor kernel modules (.ko files)
             make O=out -j$(nproc --all) ${MAKE_ARGS} modules
-          } 2>&1 | tee build.log
+          } 2>&1 | tee ../build.log
 
       - name: Create AnyKernel3 Zip
         run: |
@@ -227,9 +228,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-log
-          path: kernel/build.log
+          path: build.log
           
       - name: Upload Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Kernel-OnePlus-Nord-3-${{ steps.suffix_step.outputs.suffix }}
