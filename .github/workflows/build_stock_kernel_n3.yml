@@ -77,9 +77,8 @@ jobs:
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
         run: |
-          echo "Setting up AOSP Clang r450784d toolchain for GKI Fast Build"
-          mkdir clang-toolchain
-          curl -sL "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/tags/android-12.1.0_r27/clang-r450784d.tar.gz" | tar -xzf - -C clang-toolchain
+          echo "Setting up Proton Clang toolchain for GKI Fast Build"
+          git clone https://github.com/kdrag0n/proton-clang --depth=1 clang-toolchain
 
       - name: Install Toolchain (Standard Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'false' }}
@@ -104,20 +103,14 @@ jobs:
       - name: Clone Vendor Modules (Sparse Checkout)
         run: |
           echo "Cloning only the 'vendor' directory from the kernel modules repo..."
-          # Create a temporary directory for the sparse checkout
           mkdir kernel_modules_temp
           cd kernel_modules_temp
-          # Initialize git, set remote, and configure for sparse checkout
           git init
           git remote add origin ${{ github.event.inputs.KERNEL_MODULES_URL }}
           git config core.sparseCheckout true
-          # Specify that we only want the 'vendor' directory
           echo "vendor/*" > .git/info/sparse-checkout
-          # Pull only the specified directory from the correct branch
           git pull --depth=1 origin ${{ github.event.inputs.KERNEL_MODULES_BRANCH }}
-          # Move the cloned vendor directory into the main kernel source tree
           mv vendor ../kernel/
-          # Clean up the temporary directory
           cd ..
           rm -rf kernel_modules_temp
 
