@@ -36,9 +36,10 @@ on:
 jobs:
   build:
     name: Build GKI Kernel for OnePlus Nord 3
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
-      APT_CACHE_DIR: ${{ github.workspace }}/.apt-cache
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 8G
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,27 +53,49 @@ jobs:
           remove-android: 'true'
           remove-haskell: 'true'
 
-      - name: Set up APT Cache
+      - name: Configure Git
+        run: |
+          git config --global user.name "Luffy-456"
+          git config --global user.email "anshuman567.in@gmail.com"
+
+      - name: Configure APT
+        run: |
+          APT_CACHE_DIR="$HOME/apt-cache"
+          mkdir -p "$APT_CACHE_DIR"/{archives,lists/partial}
+          echo "Dir::Cache \"$APT_CACHE_DIR\";" | sudo tee /etc/apt/apt.conf.d/90user-cache
+          echo "Dir::Cache::archives \"$APT_CACHE_DIR/archives\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
+          echo "Dir::State::lists \"$APT_CACHE_DIR/lists\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
+          echo "Acquire::Check-Valid-Until \"false\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
+          echo "Acquire::Languages \"none\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
+          sudo chown -R $USER:$USER "$APT_CACHE_DIR"
+
+      - name: Set APT Cache
         uses: actions/cache@v3
         with:
-          path: ${{ env.APT_CACHE_DIR }}
-          key: ${{ runner.os }}-apt-cache-${{ hashFiles('**/packages.txt') }}
+          path: ${{ env.HOME }}/apt-cache
+          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/*.yml') }}
           restore-keys: |
-            ${{ runner.os }}-apt-cache-
+            ${{ runner.os }}-apt-
 
       - name: Install Dependencies
         run: |
-          echo "Setting up APT to use cache directory: ${{ env.APT_CACHE_DIR }}"
-          sudo mkdir -p ${{ env.APT_CACHE_DIR }}/archives/partial
-          sudo mkdir -p ${{ env.APT_CACHE_DIR }}/lists/partial
-          sudo chown -R _apt:root ${{ env.APT_CACHE_DIR }}
-          sudo chmod -R 700 ${{ env.APT_CACHE_DIR }}
-          
-          echo 'Dir::Cache "${{ env.APT_CACHE_DIR }}";' | sudo tee /etc/apt/apt.conf.d/99-cache
-          
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential git libssl-dev libncurses5-dev bc bison flex libelf-dev ccache gcc-aarch64-linux-gnu
+
+      - name: Restore Ccache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ github.workflow }}
+
+      - name: Initialize Ccache
+        run: |
+          if command -v ccache >/dev/null 2>&1; then
+            echo "Initializing ccache..."
+            ccache -M ${{ env.CCACHE_MAXSIZE }}
+          fi
+          ccache -s
 
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
@@ -86,15 +109,6 @@ jobs:
           echo "Setting up GCC toolchain for Standard Build"
           git clone https://github.com/mvaisakh/gcc-arm64.git --depth=1 gcc-arm64
           git clone https://github.com/mvaisakh/gcc-arm.git --depth=1 gcc-arm
-
-      - name: Set up Ccache
-        if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
-        uses: actions/cache@v3
-        with:
-          path: ~/.ccache
-          key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-${{ github.ref }}-
 
       - name: Clone Kernel Source
         run: |
