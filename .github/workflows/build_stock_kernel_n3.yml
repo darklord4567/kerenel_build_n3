@@ -143,7 +143,7 @@ jobs:
 
       - name: Prepare Custom Defconfig
         run: |
-          cp custom_defconfig_repo/901/oplus_defconfig kernel/arch/arm64/configs/oplus_defconfig
+          cp custom_defconfig_repo/oplus_defconfig kernel/arch/arm64/configs/oplus_defconfig
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
