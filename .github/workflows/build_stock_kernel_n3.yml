@@ -112,22 +112,13 @@ jobs:
       - name: Install Toolchain (Fast Build)
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
         run: |
-          echo "Cloning AOSP clang r416183b..."
-          git clone --depth=1 \
-            --branch android-11.0.0_r41 \
-            https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
-            clang-prebuilts
+          echo "Setting up LineageOS Clang r416183b toolchain..."
+          git clone https://github.com/LineageOS/android_prebuilts_clang_kernel_linux-x86_clang-r416183b.git clang-toolchain --depth=1
 
-          mkdir clang-toolchain
-          mv clang-prebuilts/clang-r416183b/* clang-toolchain/
-          rm -rf clang-prebuilts
-          echo "Toolchain installed at $(pwd)/clang-toolchain"
-
-      
-      - name: Remove LLD binary from Proton Clang to prevent host tool build errors
+      - name: Remove LLD binary from Clang to prevent host tool build errors
         if: ${{ github.event.inputs.FAST_BUILD == 'true' }}
         run: |
-          echo "Removing Proton Clang's internal ld to prevent host linker issues"
+          echo "Removing Clang's internal ld to prevent host linker issues"
           rm -f clang-toolchain/bin/ld
           
       - name: Install Toolchain (Standard Build)
@@ -141,25 +132,14 @@ jobs:
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_SOURCE_BRANCH }} ${{ github.event.inputs.KERNEL_SOURCE_URL }} kernel
 
-
       - name: Clone Vendor Modules Repo Separately
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
             ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor_modules
 
-      - name: move vendor from vendor_modules
+      - name: Move vendor from vendor_modules
         run: |
           mv vendor_modules/vendor .
-
-      - name: Debug check final vendor path
-        run: |
-          ls -l vendor/oplus/kernel/cpu/sched/Kconfig
-      
-      - name: copy gki_defconfig to oplus_defconfig
-        run: |
-          cp kernel/arch/arm64/configs/vendor/gki_defconfig \
-           kernel/arch/arm64/configs/vendor/oplus_defconfig
-          ls -l kernel/arch/arm64/configs/vendor/
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
@@ -222,25 +202,18 @@ jobs:
               export CROSS_COMPILE_ARM32=${{ github.workspace }}/gcc-arm/bin/arm-eabi-
               export CROSS_COMPILE=${{ github.workspace }}/gcc-arm64/bin/aarch64-elf-
             fi
-
-            # Debug block to check compiler setup
-            echo "=== DEBUG: Toolchain and env vars ==="
-            echo "CC: $CC"
-            echo "CLANG_TRIPLE: $CLANG_TRIPLE"
-            echo "CROSS_COMPILE: $CROSS_COMPILE"
-            echo "PATH: $PATH"
-            which clang || echo "clang binary not found"
-            clang --version || echo "clang not found or failed to run"
-            echo "=== END DEBUG ==="
-
+            
             echo "--- Configuring Kernel for GKI Build ---"
-            make O=out ${MAKE_ARGS} vendor/oplus_defconfig
+            # This defconfig is expected to be GKI-aware
+            # The path to the defconfig has been removed to test the toolchain first
+            make O=out ${MAKE_ARGS}
 
             echo "--- Building GKI Kernel Image and Vendor Modules ---"
+            # The make command will build the GKI kernel (Image.gz-dtb)
             make O=out -j$(nproc --all) ${MAKE_ARGS}
+            # The 'modules' target will build all necessary vendor kernel modules (.ko files)
             make O=out -j$(nproc --all) ${MAKE_ARGS} modules
           } 2>&1 | tee ../build.log
-
 
       - name: Create AnyKernel3 Zip
         run: |
@@ -268,3 +241,4 @@ jobs:
         with:
           name: Kernel-OnePlus-Nord-3-${{ steps.suffix_step.outputs.suffix }}
           path: Kernel-OnePlus-Nord-3-*.zip
+
