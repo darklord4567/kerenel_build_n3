@@ -132,14 +132,18 @@ jobs:
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_SOURCE_BRANCH }} ${{ github.event.inputs.KERNEL_SOURCE_URL }} kernel
 
-      - name: Clone Vendor Modules Repo Separately
+      - name: Clone Vendor Modules Repo
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
-            ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor_modules
+            ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
 
-      - name: Move vendor from vendor_modules
+      - name: Clone Custom Defconfig
         run: |
-          mv vendor_modules/vendor .
+          git clone --depth=1 -b 901 https://github.com/darklord4567/n3_oplus_defconfig.git custom_defconfig_repo
+
+      - name: Prepare Custom Defconfig
+        run: |
+          cp custom_defconfig_repo/901/oplus_defconfig kernel/arch/arm64/configs/oplus_defconfig
 
       - name: Set Custom Kernel Suffix
         id: suffix_step
@@ -204,8 +208,8 @@ jobs:
             fi
             
             echo "--- Configuring Kernel for GKI Build ---"
-            # This defconfig is expected to be GKI-aware
-            make O=out ${MAKE_ARGS} k6893v1_64_k510_defconfig
+            # Use the vendor defconfig now that it's in the standard location
+            make O=out ${MAKE_ARGS} oplus_defconfig
 
             echo "--- Building GKI Kernel Image and Vendor Modules ---"
             # The make command will build the GKI kernel (Image.gz-dtb)
