@@ -132,10 +132,14 @@ jobs:
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_SOURCE_BRANCH }} ${{ github.event.inputs.KERNEL_SOURCE_URL }} kernel
 
-      - name: Clone Vendor Modules Repo
+      - name: Clone Vendor Modules Repo Separately
         run: |
           git clone --depth=1 --single-branch -b ${{ github.event.inputs.KERNEL_MODULES_BRANCH }} \
-            ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor
+            ${{ github.event.inputs.KERNEL_MODULES_URL }} vendor_modules
+
+      - name: Move vendor from vendor_modules
+        run: |
+          mv vendor_modules/vendor .
 
       - name: Clone Custom Defconfig
         run: |
