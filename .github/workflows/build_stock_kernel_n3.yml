@@ -205,8 +205,7 @@ jobs:
             
             echo "--- Configuring Kernel for GKI Build ---"
             # This defconfig is expected to be GKI-aware
-            # The path to the defconfig has been removed to test the toolchain first
-            make O=out ${MAKE_ARGS}
+            make O=out ${MAKE_ARGS} gki_defconfig
 
             echo "--- Building GKI Kernel Image and Vendor Modules ---"
             # The make command will build the GKI kernel (Image.gz-dtb)
@@ -241,4 +240,3 @@ jobs:
         with:
           name: Kernel-OnePlus-Nord-3-${{ steps.suffix_step.outputs.suffix }}
           path: Kernel-OnePlus-Nord-3-*.zip
-
