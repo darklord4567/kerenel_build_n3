@@ -206,7 +206,7 @@ jobs:
             echo "--- Configuring Kernel for GKI Build ---"
             # This defconfig is expected to be GKI-aware
             # The path to the defconfig must be relative to the kernel source directory
-            make O=out ${MAKE_ARGS} ../vendor/oplus_defconfig
+            make O=out ${MAKE_ARGS} ../vendor/gki_defconfig
 
             echo "--- Building GKI Kernel Image and Vendor Modules ---"
             # The make command will build the GKI kernel (Image.gz-dtb)
