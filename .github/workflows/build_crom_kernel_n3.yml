@@ -6,27 +6,27 @@ on:
       KERNEL_SOURCE_URL:
         description: 'URL to the GKI kernel source code'
         required: true
-        default: 'https://github.com/OnePlusOSS/android_kernel_5.10_oneplus_mt6983'
+        default: 'https://github.com/lineageos-on-vitamin/android_kernel_oneplus_mt6983.git'
       KERNEL_SOURCE_BRANCH:
         description: 'Branch of the kernel source'
         required: true
-        default: 'oneplus/mt6983_v_15.0.0_nord_3'
+        default: 'lineage-22.2'
       KERNEL_MODULES_URL:
         description: 'URL to the vendor kernel modules repository'
         required: true
-        default: 'https://github.com/OnePlusOSS/android_kernel_modules_oneplus_mt6983'
+        default: 'https://github.com/lineageos-on-vitamin/android_kernel_modules_oneplus_mt6983.git'
       KERNEL_MODULES_BRANCH:
         description: 'Branch of the kernel modules repository'
         required: true
-        default: 'oneplus/mt6983_v_15.0.0_nord_3'
+        default: 'lineage-22.2'
       BUILD_USER:
         description: 'Custom user name embedded in the kernel version string (uname -a)'
         required: false
-        default: 'LuffyOP_stock_'
+        default: 'LuffyOP_crom_'
       CUSTOM_SUFFIX:
         description: 'Custom suffix for the kernel version string and zip file name (leave empty for random)'
         required: false
-        default: 'LuffyOP_stock_'
+        default: 'LuffyOP_crom_'
       FAST_BUILD:
         type: boolean
         description: 'Enable fast build using a specific GKI-compatible Clang toolchain and ccache?'
