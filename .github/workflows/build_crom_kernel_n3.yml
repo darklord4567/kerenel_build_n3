@@ -1,5 +1,4 @@
-name: Build Kernel for OnePlus Nord 3 (MT6983)
-
+name: Build Crom Kernel for OnePlus Nord 3 (MT6983)
 on:
   workflow_dispatch:
     inputs:
