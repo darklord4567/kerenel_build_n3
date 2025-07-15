@@ -123,6 +123,7 @@ jobs:
           git config --global user.name "Luffy-456"
           git config --global user.email "anshuman567.in@gmail.com"
 
+
       - name: Configure APTC
         run: |
           APT_CACHE_DIR="$HOME/apt-cache"
@@ -201,6 +202,19 @@ jobs:
           mkdir kernel_workspace && cd kernel_workspace
           repo init -u https://github.com/darklord4567/kerenel_build_n3 -m ${{ github.event.inputs.FILE }}.xml --depth=1
           repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
+
+      - name: Copy Build Configuration
+        run: |
+          git clone https://github.com/darklord4567/kerenel_build_n3.git kernel_workflow
+          cp -v kernel_workflow/build.config.oplus6983 kernel_workspace/kernel-5.10/
+          echo "validate the file"
+          ls -ls kernel_workspace/kernel-5.10/build.config.oplus6983
+
+      - name: Add in bash.rc
+        run: |
+          echo "BUILD_CONFIG=$GITHUB_WORKSPACE/kernel_workspace/kernel-5.10/build.config.oplus6983" >> $GITHUB_ENV
+
+
 
       # Custom kernel suffix
       - name: Custom Kernel Suffix if set
