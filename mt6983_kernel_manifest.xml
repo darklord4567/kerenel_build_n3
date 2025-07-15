@@ -13,6 +13,6 @@
   </project>
 
   <project name="android_kernel_5.10_oneplus_mt6983" path="kernel-5.10" remote="github" revision="oneplus/mt6983_v_15.0.0_nord_3" clone-depth="1" />
-  <project name="android_kernel_modules_oneplus_mt6983" path="vendor" remote="github" revision="oneplus/mt6983_v_15.0.0_nord_3" />
+  <project name="android_kernel_modules_oneplus_mt6983" path="kernel_module" remote="github" revision="oneplus/mt6983_v_15.0.0_nord_3" />
 
 </manifest>
