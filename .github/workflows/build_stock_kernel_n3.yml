@@ -155,7 +155,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          sudo update 
           sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock
           APT_CACHE_DIR="$HOME/apt-cache"
           mkdir -p "$APT_CACHE_DIR/lists/partial"
@@ -166,6 +165,7 @@ jobs:
             libncurses-dev liblz4-tool zlib1g-dev \
             libxml2-utils rsync unzip
           sudo apt install -y libelf-dev ccache llvm lld
+          sudo apt update -qq
 
       - name: Restore Ccache
         uses: actions/cache@v3
