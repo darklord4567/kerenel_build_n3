@@ -5,7 +5,7 @@
   <remote  name="github"
     	   fetch="https://github.com/OnePlusOSS" />
 
-  <default revision="master-kernel-build-2021" remote="aosp" sync-j="4" />
+  <default revision="common-android12-5.10" remote="aosp" sync-j="4" />
 
   <superproject name="kernel/superproject" remote="aosp" revision="common-android12-5.10" />
 
