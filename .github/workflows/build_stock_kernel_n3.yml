@@ -232,6 +232,12 @@ jobs:
           pwd
           echo "ls"
           ls
+          echo "cd.."
+          cd..
+          echo "pwd"
+          pwd
+          echo "ls"
+          ls
           echo "moving every thing one dir up"
           mv kernel_module/vendor .
           mv kernel_module/kernel .
