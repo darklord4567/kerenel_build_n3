@@ -297,8 +297,10 @@ jobs:
         if: ${{ (env.KERNEL_VERSION == '5.10' || env.KERNEL_VERSION == '5.15') && github.event.inputs.FAST_BUILD == 'true' }}
         run: |
           pwd
+          ls
           cd kernel_workspace
           pwd
+          ls
           DEFCONFIG=./arch/arm64/configs/gki_defconfig
           echo "Enabling ThinLTO in $DEFCONFIG"
           sed -i 's/^CONFIG_LTO=n/CONFIG_LTO=y/' "$DEFCONFIG"
