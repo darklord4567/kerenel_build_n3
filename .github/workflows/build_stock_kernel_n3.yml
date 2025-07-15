@@ -301,6 +301,8 @@ jobs:
           cd kernel_workspace
           pwd
           ls
+          cd kernel-5.10
+          ls
           DEFCONFIG=./arch/arm64/configs/gki_defconfig
           echo "Enabling ThinLTO in $DEFCONFIG"
           sed -i 's/^CONFIG_LTO=n/CONFIG_LTO=y/' "$DEFCONFIG"
