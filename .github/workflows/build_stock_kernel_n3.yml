@@ -232,8 +232,8 @@ jobs:
           pwd
           echo "ls"
           ls
-          echo "cd.."
-          cd..
+          echo "cd .."
+          cd ..
           echo "pwd"
           pwd
           echo "ls"
