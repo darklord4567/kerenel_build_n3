@@ -216,54 +216,54 @@ jobs:
 
 
 
-      # Custom kernel suffix
-      - name: Custom Kernel Suffix if set
-        if: ${{ github.event.inputs.SUFFIX != '' }}
-        run: |
-          cd kernel_workspace
-          SUFFIX="${{ github.event.inputs.SUFFIX }}"
-          ANDROID_VERSION="${{ env.ANDROID_VERSION }}"
-          FAST_BUILD="${{ github.event.inputs.FAST_BUILD }}"
+      # # Custom kernel suffix
+      # - name: Custom Kernel Suffix if set
+      #   if: ${{ github.event.inputs.SUFFIX != '' }}
+      #   run: |
+      #     cd kernel_workspace
+      #     SUFFIX="${{ github.event.inputs.SUFFIX }}"
+      #     ANDROID_VERSION="${{ env.ANDROID_VERSION }}"
+      #     FAST_BUILD="${{ github.event.inputs.FAST_BUILD }}"
 
-          for path in \
-            kernel_platform/common/scripts/setlocalversion \
-            kernel_platform/msm-kernel/scripts/setlocalversion \
-            kernel_platform/external/dtc/scripts/setlocalversion; do
+      #     for path in \
+      #       kernel_platform/common/scripts/setlocalversion \
+      #       kernel_platform/msm-kernel/scripts/setlocalversion \
+      #       kernel_platform/external/dtc/scripts/setlocalversion; do
 
-            [ -f "$path" ] || continue
+      #       [ -f "$path" ] || continue
 
-            echo "Modifying: $path"
+      #       echo "Modifying: $path"
 
-            # Remove -dirty
-            sed -i 's/ -dirty//g' "$path"
-            sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$path"
+      #       # Remove -dirty
+      #       sed -i 's/ -dirty//g' "$path"
+      #       sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$path"
 
-            if grep -q 'KERNELVERSION.*scm_version' "$path"; then
-              echo "Detected NEW setlocalversion format"
-              sed -i "s|echo \"\${KERNELVERSION}.*scm_version}\"|echo \"\${KERNELVERSION}-${ANDROID_VERSION}-${SUFFIX}\"|" "$path"
+      #       if grep -q 'KERNELVERSION.*scm_version' "$path"; then
+      #         echo "Detected NEW setlocalversion format"
+      #         sed -i "s|echo \"\${KERNELVERSION}.*scm_version}\"|echo \"\${KERNELVERSION}-${ANDROID_VERSION}-${SUFFIX}\"|" "$path"
 
-            elif grep -q 'echo "\$res"' "$path"; then
-              echo "Detected OLD setlocalversion format"
-              if [ "$FAST_BUILD" = "true" ]; then
-                echo "FAST_BUILD enabled: using static res"
-                sed -i "s/^res=.*/res=\"-${ANDROID_VERSION}-${SUFFIX}\"/" "$path"
-              else
-                echo "Standard build: injecting suffix via cut/echo"
-                if [[ -f ./kernel_platform/build_with_bazel.py ]]; then
-                  echo "When using the official script and building with build_with_bazel, the build may fail due to a limit on the number of special characters. Please modify the configuration if that happens."
-                fi
-                tac "$path" | sed "0,/echo \"\\\$res\"/s//res=\\\$(echo \\\$res | cut -d- -f1-2)-${SUFFIX}; echo \"\\\$res\";/" | tac > "$path.tmp" && mv "$path.tmp" "$path"
-              fi
-            else
-              echo "Unknown format, appending echo manually"
-              echo "echo \"\$res-${SUFFIX}\"" >> "$path"
-            fi
+      #       elif grep -q 'echo "\$res"' "$path"; then
+      #         echo "Detected OLD setlocalversion format"
+      #         if [ "$FAST_BUILD" = "true" ]; then
+      #           echo "FAST_BUILD enabled: using static res"
+      #           sed -i "s/^res=.*/res=\"-${ANDROID_VERSION}-${SUFFIX}\"/" "$path"
+      #         else
+      #           echo "Standard build: injecting suffix via cut/echo"
+      #           if [[ -f ./kernel_platform/build_with_bazel.py ]]; then
+      #             echo "When using the official script and building with build_with_bazel, the build may fail due to a limit on the number of special characters. Please modify the configuration if that happens."
+      #           fi
+      #           tac "$path" | sed "0,/echo \"\\\$res\"/s//res=\\\$(echo \\\$res | cut -d- -f1-2)-${SUFFIX}; echo \"\\\$res\";/" | tac > "$path.tmp" && mv "$path.tmp" "$path"
+      #         fi
+      #       else
+      #         echo "Unknown format, appending echo manually"
+      #         echo "echo \"\$res-${SUFFIX}\"" >> "$path"
+      #       fi
 
-            chmod +x "$path"
-          done
+      #       chmod +x "$path"
+      #     done
 
-          git add -A
-          git commit -m "Custom suffix & removed -dirty"
+      #     git add -A
+      #     git commit -m "Custom suffix & removed -dirty"
 
 
       - name: Get Kernel Suffix
