@@ -155,6 +155,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo update 
           sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock
           APT_CACHE_DIR="$HOME/apt-cache"
           mkdir -p "$APT_CACHE_DIR/lists/partial"
@@ -164,7 +165,8 @@ jobs:
             build-essential flex bison libssl-dev \
             libncurses-dev liblz4-tool zlib1g-dev \
             libxml2-utils rsync unzip
-          sudo apt install -y libelf-dev ccache llvm
+          sudo apt install -y libelf-dev ccache llvm lld
+          sudo apt update -qq
 
       - name: Restore Ccache
         uses: actions/cache@v3
@@ -319,9 +321,6 @@ jobs:
           export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/bin:$PATH"
           export PATH="/usr/lib/ccache:$PATH"
           export CC="ccache clang"
-
-          # 2. Install dependencies (llvm is NOT needed because the toolchain provides it)
-          sudo apt install -y libelf-dev ccache llvm
 
           # 3. Change to the correct kernel source directory
           cd kernel_workspace/kernel-5.10/
