@@ -214,7 +214,7 @@ jobs:
         run: |
           echo "BUILD_CONFIG=$GITHUB_WORKSPACE/kernel_workspace/kernel-5.10/build.config.oplus6983" >> $GITHUB_ENV
 
-      - name: Vendor Debug
+      - name: Vendor Issue Fix
         run: |
           echo "pwd"
           pwd
@@ -367,7 +367,7 @@ jobs:
           # 4. Define the build arguments with corrected paths and syntax
           MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
             PAHOLE=../kernel_platform/prebuilts/kernel-build-tools/linux-x86/bin/pahole \
-            LD=/usr/bin/ld.lld HOSTLD=/usr/bin/ld.lld KCFLAGS+=-Wno-error"
+            LD=/usr/bin/ld.lld HOSTLD=/usr/bin/ld.lld KCFLAGS+='-Wno-error -Wno-error=strict-prototypes'"
 
           # 5. Add LLVM_IAS if needed for kernel 5.10
           if [[ "${{ env.KERNEL_VERSION }}" == "5.10" ]]; then
