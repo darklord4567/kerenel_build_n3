@@ -6,7 +6,7 @@ on:
         type: string
         description: "Configuration file"
         required: true
-        default: mt6983_kernel_manifest.xml
+        default: mt6983_kernel_manifest
       BUILD_TIME:
         type: string
         description: "Custom build time (Enter F to use current time)"
@@ -199,7 +199,7 @@ jobs:
       - name: Initialize Repo and Sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
-          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/${{ env.CPU }} -m ${{ github.event.inputs.FILE }}.xml --depth=1
+          repo init -u https://github.com/darklord4567/kerenel_build_n3 -m ${{ github.event.inputs.FILE }}.xml --depth=1
           repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
 
       # Custom kernel suffix
